@@ -18,7 +18,7 @@ body {
   margin: 0 auto;
   width: 1000px;
   height: 500px;
-  padding: 90px 50px;
+  padding: 60px 50px;
   box-sizing: border-box;
   position: relative;
   margin-top: 20px;
@@ -79,7 +79,8 @@ body {
   width: 150px;
 }
 
-.degree {
+.degree,
+.contour {
   height: 50px;
   line-height: 50px;
 }
@@ -217,37 +218,89 @@ body {
 .copyright a:hover {
   text-decoration: underline;
 }
+
+.curved {
+  width: 50px;
+  height: 50px;
+  border: #9e9e9e 1px solid;
+  box-sizing: border-box;
+  background: #c1c1c1;
+  display: inline-block;
+}
+
+.curved:before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 48px solid #fff;
+  border-right: 48px solid transparent;
+  -webkit-border-bottom-right-radius: 0;
+  -moz-border-radius-bottomright: 0;
+  border-bottom-right-radius: 0;
+  background: transparent;
+  display: block;
+}
+
+input[type="checkbox"]:checked ~ label ~ .curved:before {
+  content: "";
+  width: 48px;
+  height: 48px;
+  -webkit-border-bottom-right-radius: 48px;
+  -moz-border-radius-bottomright: 48px;
+  border-bottom-right-radius: 48px;
+  background: #fff;
+  border: none;
+  display: block;
+}
+
+.contour input[type="checkbox"],
+.contour label {
+  vertical-align: top;
+}
+
+.contour input[type="checkbox"] {
+  position: relative;
+  top: 16px;
+}
 </style>
 </head>
 <body>
 <div class="edit_box">
   <div class="settings">
-    <span>Color：</span>
+    <span>Color:</span>
     <span><b id="co_v"></b># <input id="co_b" type="text" value="000000"></span>
   </div>
   <div class="settings">
-    <span>Opacity：</span>
+    <span>Opacity:</span>
     <span><input id="op_v" type="range" min="0" max="100" step="1" value="75"></span>
     <span><input id="op_b" type="text" value="75"> %</span>
   </div>
   <div class="settings degree">
-    <span>Angle：</span>
+    <span>Angle:</span>
     <span><div id="dg_v" class="circle"><i id="dg_h"></i></div><input id="dg_b" type="text" value="120"> °</span>
   </div>
   <div class="settings">
-    <span>Distance：</span>
+    <span>Distance:</span>
     <span><input id="ds_v" type="range" min="0" max="100" step="1" value="5"></span>
     <span><input id="ds_b" type="text" value="5"> px</span>
   </div>
   <div class="settings">
-    <span>Spread：</span>
+    <span>Spread:</span>
     <span><input id="ex_v" type="range" min="0" max="100" step="1" value="0"></span>
     <span><input id="ex_b" type="text" value="0"> %</span>
   </div>
   <div class="settings">
-    <span>Size：</span>
+    <span>Size:</span>
     <span><input id="sz_v" type="range" min="0" max="250" step="1" value="5"></span>
     <span><input id="sz_b" type="text" value="5"> px</span>
+  </div>
+  <div class="settings contour">
+    <span>Contour:</span>
+    <span>
+      <input id="ct_b" type="checkbox">
+      <label for="ct_b">curved</label>
+      <div class="curved"></div>
+    </span>
   </div>
   <div id="preview">
     <code id="code">
@@ -280,6 +333,7 @@ var coV = document.getElementById('co_v'),
     exB = document.getElementById('ex_b'),
     szV = document.getElementById('sz_v'),
     szB = document.getElementById('sz_b'),
+    ctB = document.getElementById('ct_b'),
     preview = document.getElementById('preview');
 
 var showDg = function(degree) {
@@ -302,17 +356,51 @@ var update = function() {
   s = Math.round(s * 100) / 100;
   e = Math.round(e * 100) / 100;
 
-  bs = x + 'px ' + y + 'px ' + e + 'px ' + s + 'px ' +
-      'rgba(' + r + ', ' + g + ', ' + b + ', ' + a + ')';
+  if (ctB.checked) {
+    var na = (1 - Math.sqrt(1 - a)),
+        sx = x * (2 + ex) / 3,
+        sy = y * (2 + ex) / 3,
+        se = e * (2 + ex) / 3,
+        ss = s * (2 + ex) / 3;
 
-  bsc = '<span style="color:#6c99bb">box-shadow</span>' +
-      '<span style="color:#ffffff">: </span>' + 
-      '<span style="color:#b4c973">' + x + 'px ' + y + 'px ' +
-      e + 'px ' + s + 'px ' + '</span>' + 
-      '<span style="color:#ba4b30">rgba</span>' +
-      '<span style="color:#ffffff">(</span>' + 
-      '<span style="color:#6c99bb">' + r + ', ' + g + ', ' + b + ', ' + a + '</span>' +
-      '<span style="color:#ffffff">);</span>';
+    na = Math.round(na * 100) / 100;
+    sx = Math.round(sx * 100) / 100;
+    sy = Math.round(sy * 100) / 100;
+    se = Math.round(se * 100) / 100;
+    ss = Math.round(ss * 100) / 100;
+
+    bs = sx + 'px ' + sy + 'px ' + se + 'px ' + ss + 'px ' +
+        'rgba(' + r + ', ' + g + ', ' + b + ', ' + na + '), ' +
+        x + 'px ' + y + 'px ' + e + 'px ' + s + 'px ' +
+        'rgba(' + r + ', ' + g + ', ' + b + ', ' + na + ')';
+
+    bsc = '<span style="color:#6c99bb">box-shadow</span>' +
+        '<span style="color:#ffffff">: </span>' + 
+        '<span style="color:#b4c973">' + sx + 'px ' + sy + 'px ' +
+        se + 'px ' + ss + 'px ' + '</span>' + 
+        '<span style="color:#ba4b30">rgba</span>' +
+        '<span style="color:#ffffff">(</span>' + 
+        '<span style="color:#6c99bb">' + r + ', ' + g + ', ' + b + ', ' + na + '</span>' +
+        '<span style="color:#ffffff">), </span>' +
+        '<span style="color:#b4c973">' + x + 'px ' + y + 'px ' +
+        e + 'px ' + s + 'px ' + '</span>' + 
+        '<span style="color:#ba4b30">rgba</span>' +
+        '<span style="color:#ffffff">(</span>' + 
+        '<span style="color:#6c99bb">' + r + ', ' + g + ', ' + b + ', ' + na + '</span>' +
+        '<span style="color:#ffffff">);</span>';
+  } else {
+    bs = x + 'px ' + y + 'px ' + e + 'px ' + s + 'px ' +
+        'rgba(' + r + ', ' + g + ', ' + b + ', ' + a + ')';
+
+    bsc = '<span style="color:#6c99bb">box-shadow</span>' +
+        '<span style="color:#ffffff">: </span>' + 
+        '<span style="color:#b4c973">' + x + 'px ' + y + 'px ' +
+        e + 'px ' + s + 'px ' + '</span>' + 
+        '<span style="color:#ba4b30">rgba</span>' +
+        '<span style="color:#ffffff">(</span>' + 
+        '<span style="color:#6c99bb">' + r + ', ' + g + ', ' + b + ', ' + a + '</span>' +
+        '<span style="color:#ffffff">);</span>';
+}
 
   code.innerHTML = bsc;
   code.style.boxShadow = bs;
@@ -683,6 +771,8 @@ dgB.onblur = function() {
   }
   alert('An integer between -360 and 360 is required. Closet value inserted.');
 };
+
+ctB.onclick = update;
 </script>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
